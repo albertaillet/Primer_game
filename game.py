@@ -1,9 +1,9 @@
 import io
+import re
 import time
 import base64 
 import numpy as np
 from PIL import Image
-import concurrent.futures
 import pytesseract as tess
 
 tess.pytesseract.tesseract_cmd = "C:\\Users\\alber\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe"
@@ -14,7 +14,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 class CoinGame():
 
-    def __init__(self, driver=None, animation_wait_time=1):
+    def __init__(self, driver=None):
         driver_not_provided = (driver is None)
         if driver_not_provided:
             driver = self._get_driver()
@@ -24,28 +24,31 @@ class CoinGame():
         self.window_size = (300,850)
         self.reset_window()
 
-        self.animation_wait_time = animation_wait_time
-        self.show_flipping = True        
+        self.heads = None
+        self.tails = None
         self.score = None
-        self.flips = None
         self.flips_left = None
-        self.reset_data()
+    
+        self.re_heads = re.compile(r"(?<=Heads: )[\d]+")
+        self.re_tails = re.compile(r"(?<=Tails: )[\d]+")
+        self.re_score = re.compile(r"(?<=score: )[\d]+")
+        self.re_flips_left = re.compile(r"[\d]+(?= Flips left)")
         
         if driver_not_provided:
             self._wait_for_loading()
-        
-        self.show_flipping_animations()
+            self.toggle_show_flipping_animations()
         
     def _wait_for_loading(self):
         progress = 0
         loaded = False
         while not loaded:
             screenshot = self.get_page_screenshot()
+
             loading_bar = screenshot.crop((224, 757, 500, 786))
             threshold = loading_bar.point(lambda p: 1 if p > 200 else 0)
             threshold = np.array(threshold)
-            progress = threshold.sum()/threshold.size
-            
+            if threshold.sum()/threshold.size > progress:
+                progress = threshold.sum()/threshold.size
             
             title = screenshot.crop((100, 70, 700, 400))
             title_text = CoinGame._get_image_text(title)
@@ -53,9 +56,7 @@ class CoinGame():
                 loaded = True
                 progress = 1
             print(f"Loading: {100*progress:5.1f}%", end='\r')
-
-    def _wait_for_animations(self):
-        time.sleep(self.animation_wait_time)
+            time.sleep(1)
 
     def _get_driver(self):
         chrome_options = webdriver.ChromeOptions()
@@ -80,8 +81,9 @@ class CoinGame():
         return tess.image_to_string(image)
 
     def reset_data(self):
+        self.heads = None
+        self.tails = None
         self.score = None
-        self.flips = None
         self.flips_left = None
     
     def get_score(self) -> int:
@@ -94,51 +96,50 @@ class CoinGame():
             self.get_data()
         return self.flips_left
     
-    def get_flips(self) -> dict:
-        if self.flips is None:
+    def get_heads(self) -> int:
+        if self.heads is None:
             self.get_data()
-        return self.flips
+        return self.heads
 
-    def get_data(self): 
+    def get_tails(self) -> int:
+        if self.tails is None:
+            self.get_data()
+        return self.tails
+
+    def get_data(self) -> dict: 
         screenshot = self.get_page_screenshot()
-        
-        self.flips = CoinGame.parse_flips(
-                            CoinGame._get_image_text(
-                                    screenshot.crop((325, 490, 550, 600))))
 
-        self.score = CoinGame.parse_score(
-                            CoinGame._get_image_text(
-                                    screenshot.crop((0, 920, 300, 985))))
+        crop = screenshot.crop((0, 490, 750, 985))
+        text = CoinGame._get_image_text(crop)
 
-        self.flips_left = CoinGame.parse_flips_left(
-                                CoinGame._get_image_text(
-                                        screenshot.crop((400, 920, 750, 985))))
-    
-    def get_end_score(self):
-        screenshot = self.get_page_screenshot()
-        cropped = screenshot.crop((0, 450, 750, 650))
-        text = CoinGame._get_image_text(cropped)
-        return CoinGame.parse_score(text)
+        self.heads = self.parse_heads(text)
+        self.tails = self.parse_tails(text)
+        self.score = self.parse_score(text)
+        self.flips_left = self.parse_flips_left(text)
 
-    @staticmethod
-    def parse_flips_left(string):
-        string = string.lower().strip()
-        if "flips left" in string:
-            return int(string.split(' ')[0])
+        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
 
-    @staticmethod
-    def parse_flips(string):
-        if 'Heads: ' in string and 'Tails: ' in string:
-            text_tuples = [line.split(': ') for line in string.split('\n')[:2]]
-            text_dict = {k: int(v) for k, v in text_tuples}
-            return text_dict
-        return {'Heads': 0, 'Tails': 0}
+    def parse_heads(self, string):
+        m = self.re_heads.search(string)
+        if m:
+            return int(m.group(0))
+        return 0
 
-    @staticmethod
-    def parse_score(string):
-        string = string.lower().strip()
-        if 'score: ' in string:
-            return int(string.split(': ')[1])
+    def parse_tails(self, string):
+        m = self.re_tails.search(string)
+        if m:
+            return int(m.group(0))
+        return 0
+
+    def parse_flips_left(self, string):
+        m = self.re_flips_left.search(string)
+        if m:
+            return int(m.group(0))
+
+    def parse_score(self, string):
+        m = self.re_score.search(string.lower())
+        if m:
+            return int(m.group(0))
 
     def _click_location(self, x, y):
         self.reset_data()
@@ -147,7 +148,6 @@ class CoinGame():
         action.move_to_element_with_offset(self.element, x, y)
         action.click()
         action.perform()
-        self._wait_for_animations()
     
     # Clicking locations:
     # Game: x, y = 20, 20
@@ -171,8 +171,7 @@ class CoinGame():
     def flip_five_coins(self):
         self._click_location(330, 500)
     
-    def show_flipping_animations(self):
-        self.show_flipping = not self.show_flipping
+    def toggle_show_flipping_animations(self):
         self._click_location(50, 550)
     
     def label_fair(self):
