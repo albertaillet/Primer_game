@@ -3,6 +3,7 @@ import time
 import base64 
 import numpy as np
 from PIL import Image
+import concurrent.futures
 import pytesseract as tess
 
 tess.pytesseract.tesseract_cmd = "C:\\Users\\alber\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe"
@@ -13,10 +14,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 class CoinGame():
 
-    def __init__(self, driver=None, animation_wait_time=2.5):
+    def __init__(self, driver=None, animation_wait_time=1):
         driver_not_provided = (driver is None)
         if driver_not_provided:
-            driver_provided = True
             driver = self._get_driver()
             driver.get('https://primerlearning.org/')
         self.driver = driver
@@ -32,23 +32,27 @@ class CoinGame():
         self.reset_data()
         
         if driver_not_provided:
-            self._unity_loading()
+            self._wait_for_loading()
         
         self.show_flipping_animations()
         
-    def _unity_loading(self):
+    def _wait_for_loading(self):
         progress = 0
-        iterations = 0
-        while progress < 0.75 and iterations < 100:
-            iterations += 1
+        loaded = False
+        while not loaded:
             screenshot = self.get_page_screenshot()
-            cropped = screenshot.crop((224, 757, 500, 786))
-            threshold = cropped.point(lambda p: 1 if p > 200 else 0)
+            loading_bar = screenshot.crop((224, 757, 500, 786))
+            threshold = loading_bar.point(lambda p: 1 if p > 200 else 0)
             threshold = np.array(threshold)
             progress = threshold.sum()/threshold.size
-            print(f"Loading: {100 * progress:.1f}%", end='\r')
-            time.sleep(0.3)
-        time.sleep(5)
+            
+            
+            title = screenshot.crop((100, 70, 700, 400))
+            title_text = CoinGame._get_image_text(title)
+            if "Catch the cheaters!" in title_text:
+                loaded = True
+                progress = 1
+            print(f"Loading: {100*progress:5.1f}%", end='\r')
 
     def _wait_for_animations(self):
         time.sleep(self.animation_wait_time)
