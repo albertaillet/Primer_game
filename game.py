@@ -13,26 +13,42 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 class CoinGame():
 
-    def __init__(self, driver=None, animation_wait_time=1):
-        self.window_size = (300,850)
-        self.animation_wait_time = animation_wait_time
-        self.show_flipping = True
-
-        if driver is None:
+    def __init__(self, driver=None, animation_wait_time=2.5):
+        driver_not_provided = (driver is None)
+        if driver_not_provided:
+            driver_provided = True
             driver = self._get_driver()
-            driver.set_window_size(*self.window_size)
             driver.get('https://primerlearning.org/')
-            time.sleep(30)
         self.driver = driver
+        self.element = self.driver.find_element_by_id("coin-flip-app")
+        self.window_size = (300,850)
+        self.reset_window()
 
+        self.animation_wait_time = animation_wait_time
+        self.show_flipping = True        
         self.score = None
         self.flips = None
         self.flips_left = None
-
-        self.element = self.driver.find_element_by_id("coin-flip-app")
-        self.show_flipping_animations()
-        self.reset_window()
         self.reset_data()
+        
+        if driver_not_provided:
+            self._unity_loading()
+        
+        self.show_flipping_animations()
+        
+    def _unity_loading(self):
+        progress = 0
+        iterations = 0
+        while progress < 0.75 and iterations < 100:
+            iterations += 1
+            screenshot = self.get_page_screenshot()
+            cropped = screenshot.crop((224, 757, 500, 786))
+            threshold = cropped.point(lambda p: 1 if p > 200 else 0)
+            threshold = np.array(threshold)
+            progress = threshold.sum()/threshold.size
+            print(f"Loading: {100 * progress:.1f}%", end='\r')
+            time.sleep(0.3)
+        time.sleep(5)
 
     def _wait_for_animations(self):
         time.sleep(self.animation_wait_time)
@@ -48,6 +64,7 @@ class CoinGame():
         self.driver.execute_script("arguments[0].scrollIntoView();", self.element)
 
     def get_page_screenshot(self):
+        self.reset_window()
         screenshot = self.driver.get_screenshot_as_base64()
         screenshot = base64.b64decode(screenshot)
         screenshot = io.BytesIO(screenshot)
@@ -101,7 +118,8 @@ class CoinGame():
 
     @staticmethod
     def parse_flips_left(string):
-        if "Flips left" in string:
+        string = string.lower().strip()
+        if "flips left" in string:
             return int(string.split(' ')[0])
 
     @staticmethod
@@ -114,11 +132,13 @@ class CoinGame():
 
     @staticmethod
     def parse_score(string):
-        if 'Score: ' in string:
-            return int(string.split('Score: ')[1])
+        string = string.lower().strip()
+        if 'score: ' in string:
+            return int(string.split(': ')[1])
 
     def _click_location(self, x, y):
         self.reset_data()
+        self.reset_window()
         action = ActionChains(self.driver)
         action.move_to_element_with_offset(self.element, x, y)
         action.click()
@@ -164,5 +184,3 @@ class CoinGame():
     def restart_browser(self):
         self.driver.quit()
         self.__init__()
-
-g = CoinGame(driver=driver)
