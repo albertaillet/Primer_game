@@ -6,23 +6,28 @@ import numpy as np
 from PIL import Image
 import pytesseract as tess
 
+chromedirver_path = "C:\\Users\\alber\\Documents\\My_Code\\Python_sandbox\\Primer_game\\chromedriver.exe"
 tess.pytesseract.tesseract_cmd = "C:\\Users\\alber\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe"
 
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-
+from selenium.webdriver.support.ui import WebDriverWait
 
 class CoinGame():
 
-    def __init__(self, driver=None):
+    def __init__(self, driver=None,
+                 window_size = (300,850),
+                 label_animation_time = 1.3):
         driver_not_provided = (driver is None)
         if driver_not_provided:
             driver = self._get_driver()
             driver.get('https://primerlearning.org/')
         self.driver = driver
         self.element = self.driver.find_element_by_id("coin-flip-app")
-        self.window_size = (300,850)
+        self.window_size = window_size
         self.reset_window()
+
+        self.label_animation_time = label_animation_time
 
         self.heads = None
         self.tails = None
@@ -36,33 +41,22 @@ class CoinGame():
         
         if driver_not_provided:
             self._wait_for_loading()
+            time.sleep(2) # wait for starting animation to finish
             self.toggle_show_flipping_animations()
         
     def _wait_for_loading(self):
-        progress = 0
-        loaded = False
-        while not loaded:
-            screenshot = self.get_page_screenshot()
-
-            loading_bar = screenshot.crop((224, 757, 500, 786))
-            threshold = loading_bar.point(lambda p: 1 if p > 200 else 0)
-            threshold = np.array(threshold)
-            if threshold.sum()/threshold.size > progress:
-                progress = threshold.sum()/threshold.size
-            
-            title = screenshot.crop((100, 70, 700, 400))
-            title_text = CoinGame._get_image_text(title)
-            if "Catch the cheaters!" in title_text:
-                loaded = True
-                progress = 1
-            print(f"Loading: {100*progress:5.1f}%", end='\r')
-            time.sleep(1)
+        iframe = self.driver.find_elements_by_tag_name('iframe')[0]
+        self.driver.switch_to.frame(iframe)
+        WebDriverWait(self.driver, 200).until(
+            lambda drvr: drvr.find_element_by_id("unity-progress-bar-full")
+                             .get_attribute("style") == "width: 100%;")
+        self.driver.switch_to.default_content()
 
     def _get_driver(self):
         chrome_options = webdriver.ChromeOptions()
         mobile_emulation = { "deviceName": "iPhone 6" }
         chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
-        return webdriver.Chrome(options= chrome_options)
+        return webdriver.Chrome(executable_path=chromedirver_path, options= chrome_options)
 
     def reset_window(self):
         self.driver.set_window_size(*self.window_size)
@@ -70,8 +64,7 @@ class CoinGame():
 
     def get_page_screenshot(self):
         self.reset_window()
-        screenshot = self.driver.get_screenshot_as_base64()
-        screenshot = base64.b64decode(screenshot)
+        screenshot = self.driver.get_screenshot_as_png()
         screenshot = io.BytesIO(screenshot)
         screenshot = Image.open(screenshot).convert('L')
         return screenshot
@@ -119,24 +112,24 @@ class CoinGame():
 
         return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
 
-    def parse_heads(self, string):
+    def parse_heads(self, string) -> int:
         m = self.re_heads.search(string)
         if m:
             return int(m.group(0))
         return 0
 
-    def parse_tails(self, string):
+    def parse_tails(self, string) -> int:
         m = self.re_tails.search(string)
         if m:
             return int(m.group(0))
         return 0
 
-    def parse_flips_left(self, string):
+    def parse_flips_left(self, string) -> int:
         m = self.re_flips_left.search(string)
         if m:
             return int(m.group(0))
 
-    def parse_score(self, string):
+    def parse_score(self, string) -> int:
         m = self.re_score.search(string.lower())
         if m:
             return int(m.group(0))
@@ -176,9 +169,11 @@ class CoinGame():
     
     def label_fair(self):
         self._click_location(20, 600)
+        time.sleep(self.label_animation_time)
 
     def label_cheater(self):
         self._click_location(330, 600)
+        time.sleep(self.label_animation_time)
 
     def reset_game(self):
         self._click_location(155, 600)
