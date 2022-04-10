@@ -40,11 +40,6 @@ class CoinGameSimulation():
         return self.tails
 
     def get_data(self) -> dict: 
-        self.heads = None
-        self.tails = None
-        self.score = None
-        self.flips_left = None
-
         return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
     
     
@@ -74,8 +69,6 @@ class CoinGameSimulation():
             self.flips_left += self.incorrect_label_penalty
         self.new_blob()
         if self.flips_left <= 0:
-            print("Game over!")
-            print("Score:", self.score)
             self.game_over = True
 
     def reset_game(self):
