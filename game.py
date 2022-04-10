@@ -13,21 +13,28 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 class CoinGame():
 
-    def __init__(self, animation_wait_time=1):
-
+    def __init__(self, driver=None, animation_wait_time=1):
         self.window_size = (300,850)
-
-        self.driver = self._get_driver()
-        self.driver.set_window_size(*self.window_size)
-        self.driver.get('https://primerlearning.org/')
-        self.element = self.driver.find_element_by_id("coin-flip-app")
-        self.show_flipping = True
-        self.reset_window()
         self.animation_wait_time = animation_wait_time
-        time.sleep(30)
-        self.show_flipping_animations()
+        self.show_flipping = True
 
-    def wait_for_animations(self):
+        if driver is None:
+            driver = self._get_driver()
+            driver.set_window_size(*self.window_size)
+            driver.get('https://primerlearning.org/')
+            time.sleep(30)
+        self.driver = driver
+
+        self.score = None
+        self.flips = None
+        self.flips_left = None
+
+        self.element = self.driver.find_element_by_id("coin-flip-app")
+        self.show_flipping_animations()
+        self.reset_window()
+        self.reset_data()
+
+    def _wait_for_animations(self):
         time.sleep(self.animation_wait_time)
 
     def _get_driver(self):
@@ -45,37 +52,78 @@ class CoinGame():
         screenshot = base64.b64decode(screenshot)
         screenshot = io.BytesIO(screenshot)
         screenshot = Image.open(screenshot).convert('L')
-        screenshot = np.asarray(screenshot)
         return screenshot
 
     @staticmethod
     def _get_image_text(image):
         return tess.image_to_string(image)
 
+    def reset_data(self):
+        self.score = None
+        self.flips = None
+        self.flips_left = None
+    
+    def get_score(self) -> int:
+        if self.score is None:
+            self.get_data()
+        return self.score
+
+    def get_flips_left(self) -> int:
+        if self.flips_left is None:
+            self.get_data()
+        return self.flips_left
+    
     def get_flips(self) -> dict:
+        if self.flips is None:
+            self.get_data()
+        return self.flips
+
+    def get_data(self): 
         screenshot = self.get_page_screenshot()
-        cropped = screenshot[490:600, 325:550]
-        text = CoinGaime._get_image_text(cropped)
-        if 'Heads: ' in text and 'Tails: ' in text:
-            text_tuples = [line.split(': ') for line in text.split('\n')[:2]]
+        
+        self.flips = CoinGame.parse_flips(
+                            CoinGame._get_image_text(
+                                    screenshot.crop((325, 490, 550, 600))))
+
+        self.score = CoinGame.parse_score(
+                            CoinGame._get_image_text(
+                                    screenshot.crop((0, 920, 300, 985))))
+
+        self.flips_left = CoinGame.parse_flips_left(
+                                CoinGame._get_image_text(
+                                        screenshot.crop((400, 920, 750, 985))))
+    
+    def get_end_score(self):
+        screenshot = self.get_page_screenshot()
+        cropped = screenshot.crop((0, 450, 750, 650))
+        text = CoinGame._get_image_text(cropped)
+        return CoinGame.parse_score(text)
+
+    @staticmethod
+    def parse_flips_left(string):
+        if "Flips left" in string:
+            return int(string.split(' ')[0])
+
+    @staticmethod
+    def parse_flips(string):
+        if 'Heads: ' in string and 'Tails: ' in string:
+            text_tuples = [line.split(': ') for line in string.split('\n')[:2]]
             text_dict = {k: int(v) for k, v in text_tuples}
             return text_dict
         return {'Heads': 0, 'Tails': 0}
 
-    def get_end_score(self):
-        screenshot = self.get_page_screenshot()
-        cropped = screenshot[450:650]
-        text = CoinGaime._get_image_text(cropped)
-        if 'Score: ' in text:
-            return int(text.split('Score: ')[1])
-        return None
+    @staticmethod
+    def parse_score(string):
+        if 'Score: ' in string:
+            return int(string.split('Score: ')[1])
 
     def _click_location(self, x, y):
+        self.reset_data()
         action = ActionChains(self.driver)
         action.move_to_element_with_offset(self.element, x, y)
         action.click()
         action.perform()
-        self.wait_for_animations()
+        self._wait_for_animations()
     
     # Clicking locations:
     # Game: x, y = 20, 20
@@ -116,3 +164,5 @@ class CoinGame():
     def restart_browser(self):
         self.driver.quit()
         self.__init__()
+
+g = CoinGame(driver=driver)
