@@ -78,28 +78,15 @@ class CoinGame():
         self.tails = None
         self.score = None
         self.flips_left = None
-    
-    def get_score(self) -> int:
-        if self.score is None:
-            self.get_data()
-        return self.score
-
-    def get_flips_left(self) -> int:
-        if self.flips_left is None:
-            self.get_data()
-        return self.flips_left
-    
-    def get_heads(self) -> int:
-        if self.heads is None:
-            self.get_data()
-        return self.heads
-
-    def get_tails(self) -> int:
-        if self.tails is None:
-            self.get_data()
-        return self.tails
 
     def get_data(self) -> dict: 
+        if any(val is None for val in [self.heads, self.tails, self.score, self.flips_left]):
+            self._update_data()
+
+        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
+
+
+    def _update_data(self):
         screenshot = self.get_page_screenshot()
 
         crop = screenshot.crop((0, 490, 750, 985))
@@ -110,7 +97,6 @@ class CoinGame():
         self.score = self.parse_score(text)
         self.flips_left = self.parse_flips_left(text)
 
-        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
 
     def parse_heads(self, string) -> int:
         m = self.re_heads.search(string)
@@ -157,15 +143,15 @@ class CoinGame():
 
     def click_leaderboard_tab(self):
         self._click_location(330, 20)
+    
+    def toggle_show_flipping_animations(self):
+        self._click_location(50, 550)
 
     def flip_one_coin(self):
         self._click_location(20, 500)
     
     def flip_five_coins(self):
-        self._click_location(330, 500)
-    
-    def toggle_show_flipping_animations(self):
-        self._click_location(50, 550)
+        self._click_location(330, 500) 
     
     def label_fair(self):
         self._click_location(20, 600)

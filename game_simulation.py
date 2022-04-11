@@ -18,30 +18,9 @@ class CoinGameSimulation():
         self.player = Player()
         self.heads = 0
         self.tails = 0
-    
-    def get_score(self) -> int:
-        if self.score is None:
-            self.get_data()
-        return self.score
-
-    def get_flips_left(self) -> int:
-        if self.flips_left is None:
-            self.get_data()
-        return self.flips_left
-    
-    def get_heads(self) -> int:
-        if self.heads is None:
-            self.get_data()
-        return self.heads
-
-    def get_tails(self) -> int:
-        if self.tails is None:
-            self.get_data()
-        return self.tails
 
     def get_data(self) -> dict: 
         return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
-    
     
     def flip_one_coin(self):
         if self.flips_left > 0:
@@ -78,8 +57,9 @@ class CoinGameSimulation():
 class Player():
 
     def __init__(self) -> None:
-        if random.random() < 0.5:
-            self.p = random.random() * 0.5 + 0.5
+        unif = random.random()
+        if unif > 0.5:
+            self.p = unif
             self.ground_truth_label = "cheater"
         else:
             self.p = 0.5
