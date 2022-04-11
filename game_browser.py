@@ -15,7 +15,8 @@ class CoinGameBrower(CoinGame):
     def __init__(self, 
                  driver=None,
                  window_size = (300,850),
-                 label_animation_time = 1.3):
+                 label_animation_time = 1.3,
+                 game_over_animate_time = 2.0):
         
         driver_not_provided = (driver is None)
         if driver_not_provided:
@@ -28,6 +29,7 @@ class CoinGameBrower(CoinGame):
         self.reset_window()
 
         self.label_animation_time = label_animation_time
+        self.game_over_animate_time = game_over_animate_time
 
         self.heads = None
         self.tails = None
@@ -131,41 +133,52 @@ class CoinGameBrower(CoinGame):
             return int(m.group(0))
 
     def _click_location(self, x, y):
-        self.outdated_data = True
         action = ActionChains(self.driver)
         action.move_to_element_with_offset(self.element, x, y)
         action.click()
         action.perform()    
-        if self.heads == 0 and self.tails == 0:
+        if self.heads == 0 and self.tails == 0 and not self.outdated_data:
             time.sleep(self.label_animation_time)
+        self.outdated_data = True
 
     def flip_one_coin(self):
-        if not self.game_over and self.flips_left > 0:
+        if (not self.game_over) and (self.flips_left > 0):
             self._click_location(*self.clicking_locations["flip_one"])
+            self.flips_left -= 1
     
     def flip_five_coins(self):
-        if not self.game_over and self.flips_left > 0:
+        if (not self.game_over) and (self.flips_left >= 5):
             self._click_location(*self.clicking_locations["flip_five"])
+            self.flips_left -= 5
     
     def toggle_show_flipping_animations(self):
         if not self.game_over:
             self._click_location(*self.clicking_locations["toggle_show_flipping_animations"])
     
     def label_fair(self):
-        if not self.game_over:
-            self._click_location(*self.clicking_locations["label_fair"])
-            time.sleep(self.label_animation_time)
+        self._label("label_fair")
 
     def label_cheater(self):
+        self._label("label_cheater")
+
+    def _label(self, label):
         if not self.game_over:
-            self._click_location(*self.clicking_locations["label_cheater"])
+            self._click_location(*self.clicking_locations[label])
+        if self.flips_left <= 30:
+            time.sleep(self.game_over_animate_time)
+        else:
             time.sleep(self.label_animation_time)
+        self.outdated_data = True
+        self._update_data()
 
     def reset_game(self):
         if self.game_over:
             self._click_location(*self.clicking_locations["reset"])
             self.reset_window()
             self.game_over = False
+            self.outdated_data = True
+            time.sleep(self.label_animation_time)
+            self._update_data()
     
     def restart_browser(self):
         self.driver.quit()
