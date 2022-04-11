@@ -33,6 +33,9 @@ class CoinGameBrower(CoinGame):
         self.tails = None
         self.score = None
         self.flips_left = None
+
+        self.game_over = False
+        self.outdated_data = True
     
         self.re_heads = re.compile(r"(?<=Heads: )[\d]+")
         self.re_tails = re.compile(r"(?<=Tails: )[\d]+")
@@ -52,6 +55,7 @@ class CoinGameBrower(CoinGame):
             self._wait_for_loading()
             time.sleep(2) # wait for starting animation to finish
             self.toggle_show_flipping_animations()
+            self._update_data()
         
     def _wait_for_loading(self):
         iframe = self.driver.find_elements_by_tag_name('iframe')[0]
@@ -82,17 +86,12 @@ class CoinGameBrower(CoinGame):
     def _get_image_text(image):
         return tess.image_to_string(image)
 
-    def reset_data(self):
-        self.heads = None
-        self.tails = None
-        self.score = None
-        self.flips_left = None
-
     def get_data(self) -> dict: 
-        if any(val is None for val in [self.heads, self.tails, self.score, self.flips_left]):
+        if self.outdated_data or any(val is None for val in [self.heads, self.tails, self.score, self.flips_left]):
             self._update_data()
 
-        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
+        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], 
+                                    [self.heads, self.tails, self.score, self.flips_left])}
 
     def _update_data(self):
         screenshot = self.get_page_screenshot()
@@ -100,11 +99,14 @@ class CoinGameBrower(CoinGame):
         crop = screenshot.crop((0, 490, 750, 985))
         text = CoinGameBrower._get_image_text(crop)
 
+        self.game_over = "the leaderboard" in text.lower() or "game over" in text.lower()
+
         self.heads = self.parse_heads(text)
         self.tails = self.parse_tails(text)
         self.score = self.parse_score(text)
         self.flips_left = self.parse_flips_left(text)
 
+        self.outdated_data = False
 
     def parse_heads(self, string) -> int:
         m = self.re_heads.search(string)
@@ -129,36 +131,41 @@ class CoinGameBrower(CoinGame):
             return int(m.group(0))
 
     def _click_location(self, x, y):
-        h, t = self.heads, self.tails
-        self.reset_data()
-        self.reset_window()
+        self.outdated_data = True
         action = ActionChains(self.driver)
         action.move_to_element_with_offset(self.element, x, y)
         action.click()
-        action.perform()
-        if h == 0 and t == 0:
+        action.perform()    
+        if self.heads == 0 and self.tails == 0:
             time.sleep(self.label_animation_time)
 
     def flip_one_coin(self):
-        self._click_location(*self.clicking_locations["flip_one"])
+        if not self.game_over and self.flips_left > 0:
+            self._click_location(*self.clicking_locations["flip_one"])
     
     def flip_five_coins(self):
-        self._click_location(*self.clicking_locations["flip_five"])
+        if not self.game_over and self.flips_left > 0:
+            self._click_location(*self.clicking_locations["flip_five"])
     
     def toggle_show_flipping_animations(self):
-        self._click_location(*self.clicking_locations["toggle_show_flipping_animations"])
+        if not self.game_over:
+            self._click_location(*self.clicking_locations["toggle_show_flipping_animations"])
     
     def label_fair(self):
-        self._click_location(*self.clicking_locations["label_fair"])
-        time.sleep(self.label_animation_time)
+        if not self.game_over:
+            self._click_location(*self.clicking_locations["label_fair"])
+            time.sleep(self.label_animation_time)
 
     def label_cheater(self):
-        self._click_location(*self.clicking_locations["label_cheater"])
-        time.sleep(self.label_animation_time)
+        if not self.game_over:
+            self._click_location(*self.clicking_locations["label_cheater"])
+            time.sleep(self.label_animation_time)
 
     def reset_game(self):
-        self._click_location(*self.clicking_locations["reset"])
-        self.reset_window()
+        if self.game_over:
+            self._click_location(*self.clicking_locations["reset"])
+            self.reset_window()
+            self.game_over = False
     
     def restart_browser(self):
         self.driver.quit()
