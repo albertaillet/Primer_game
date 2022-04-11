@@ -1,6 +1,7 @@
 import random
+from game import CoinGame
 
-class CoinGameSimulation():
+class CoinGameSimulation(CoinGame):
 
     def __init__(self):     
         self.correct_label_bonus = 15
