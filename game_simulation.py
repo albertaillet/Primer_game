@@ -17,7 +17,7 @@ class CoinGameSimulation(CoinGame):
         self.heads = 0
         self.tails = 0
 
-    def get_data(self) -> tuple: 
+    def observe(self) -> tuple: 
         return self.heads, self.tails, self.flips_left 
     
     def flip_one_coin(self):

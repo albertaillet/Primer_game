@@ -24,9 +24,9 @@ class CoinGame(gym.Env):
     The observation is a 3-tuple containing the following:
     | Num | Observation                          | Min  | Max         | Unit   |
     |-----|--------------------------------------|------|-------------|--------|
-    | 0   | Number of heads                      | 0    | around 500  | amount |
-    | 1   | Number of tails                      | 0    | around 500  | amount |
-    | 3   | Number of flips left                 | 0    | around 500  | amount |
+    | 0   | Number of heads                      | 0    | around 100  | amount |
+    | 1   | Number of tails                      | 0    | around 100  | amount |
+    | 3   | Number of flips left                 | 0    | around 100  | amount |
     
     ### Action Space
     There are 4 discrete actions:
@@ -49,14 +49,19 @@ class CoinGame(gym.Env):
 
     def __init__(self):
         #max_value = np.iinfo(np.int64).max
-        max_value = 500
+        max_value = 100
         self.observation_space =  spaces.Tuple(
             (spaces.Discrete(max_value), spaces.Discrete(max_value), spaces.Discrete(max_value))
         )
         self.action_space = spaces.Discrete(4)
         self.seed()
+        # the following properties are set by the subclass:
+        self.score = 0
+        self.flips_left = 0
+        self.done = False
 
-    def step(self, action: int):
+
+    def step(self, action: int) -> tuple:
         assert self.action_space.contains(action), f"{action!r} ({type(action)}) invalid"
         old_score = self.score
         old_flips = self.flips_left
@@ -72,7 +77,7 @@ class CoinGame(gym.Env):
         else: 
             raise ValueError(f"{action!r} ({type(action)}) invalid")
         
-        data = self.get_data()
+        data = self.observe()
         new_score = self.score
         new_flips = self.flips_left
         reward = new_flips - old_flips
@@ -88,17 +93,16 @@ class CoinGame(gym.Env):
     def reset(self, return_info=False, seed=None):
         self.reset_game()
         if not return_info:
-            return self.get_data()
+            return self.observe()
         else:
-            return self.get_data(), {}
+            return self.observe(), {}
 
-    def close():
-        raise NotImplementedError
+    # The following methods have to be implmented by the class inheriting from this class.
 
     def reset_game(self):
         raise NotImplementedError
 
-    def get_data(self) -> tuple: 
+    def observe(self) -> tuple: 
         raise NotImplementedError
 
     def flip_one_coin(self):
@@ -114,4 +118,11 @@ class CoinGame(gym.Env):
         raise NotImplementedError
 
     def label_cheater(self):
+        raise NotImplementedError
+
+    # The following methods are optional and can be implmented by the class inheriting from this class.
+    def render(self, mode='human'):
+        raise NotImplementedError
+    
+    def close(self, seed=None):
         raise NotImplementedError
