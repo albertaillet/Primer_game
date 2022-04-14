@@ -1,4 +1,5 @@
 # Albert Aillet, April 2022
+# Implements the simulated logic of the game.
 import random
 from game import CoinGame
 
@@ -11,8 +12,8 @@ class CoinGameSimulation(CoinGame):
         self.start_flips = 100
         self.reset_game()
     
-    def new_blob(self):
-        self.player = Player()
+    def new_opponent(self):
+        self.opponent = Opponent()
         self.heads = 0
         self.tails = 0
 
@@ -21,7 +22,7 @@ class CoinGameSimulation(CoinGame):
     
     def flip_one_coin(self):
         if self.flips_left > 0:
-            if self.player.flip():
+            if self.opponent.flip():
                 self.heads += 1
             else:
                 self.tails += 1
@@ -38,12 +39,12 @@ class CoinGameSimulation(CoinGame):
         self._label("cheater")
 
     def _label(self, label: str):
-        if label == self.player.ground_truth_label:
+        if label == self.opponent.ground_truth_label:
             self.score += 1
             self.flips_left += self.correct_label_bonus
         else:
             self.flips_left += self.incorrect_label_penalty
-        self.new_blob()
+        self.new_opponent()
         if self.flips_left <= 0:
             self.done = True
 
@@ -51,12 +52,12 @@ class CoinGameSimulation(CoinGame):
         self.score = 0
         self.flips_left = self.start_flips
 
-        self.new_blob()
+        self.new_opponent()
 
         self.done = False
 
 
-class Player():
+class Opponent():
 
     def __init__(self) -> None:
         unif = random.random()
