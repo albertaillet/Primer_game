@@ -93,7 +93,7 @@ class CoinGameBrower(CoinGame):
     def _get_image_text(image):
         return tess.image_to_string(image)
 
-    def get_data(self) -> dict: 
+    def get_data(self) -> tuple: 
         if self.outdated_data or any(val is None for val in [self.heads, self.tails, self.score, self.flips_left]):
             self._update_data()
 
