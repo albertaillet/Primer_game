@@ -5,17 +5,10 @@ class CoinGameSimulation(CoinGame):
 
     def __init__(self):
         super().__init__()
-
         self.correct_label_bonus = 15
         self.incorrect_label_penalty = -30
         self.start_flips = 100
-
-        self.score = 0
-        self.flips_left = self.start_flips
-
-        self.new_blob()
-
-        self.done = False
+        self.reset_game()
     
     def new_blob(self):
         self.player = Player()
@@ -54,7 +47,12 @@ class CoinGameSimulation(CoinGame):
             self.done = True
 
     def reset_game(self):
-        self.__init__()
+        self.score = 0
+        self.flips_left = self.start_flips
+
+        self.new_blob()
+
+        self.done = False
 
 
 class Player():
