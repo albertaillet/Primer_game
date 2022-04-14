@@ -59,6 +59,7 @@ class CoinGame(gym.Env):
     def step(self, action: int):
         assert self.action_space.contains(action), f"{action!r} ({type(action)}) invalid"
         old_score = self.score
+        old_flips = self.flips_left
 
         if action == 0:
             self.flip_one_coin()
@@ -73,7 +74,8 @@ class CoinGame(gym.Env):
         
         data = self.get_data()
         new_score = self.score
-        reward = new_score - old_score
+        new_flips = self.flips_left
+        reward = new_flips - old_flips
         if self.done:
             logger.warn(
                 "You are calling 'step()' even though this "
