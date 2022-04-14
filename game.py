@@ -3,7 +3,8 @@
 # and https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
 import gym
 from gym import spaces, logger
-from gym.utils import seeding
+from abc import abstractmethod
+
 
 import numpy as np
 
@@ -99,30 +100,40 @@ class CoinGame(gym.Env):
 
     # The following methods have to be implmented by the class inheriting from this class.
 
+    @abstractmethod
     def reset_game(self):
         raise NotImplementedError
 
+    @abstractmethod
     def observe(self) -> tuple: 
         raise NotImplementedError
 
+    @abstractmethod
     def flip_one_coin(self):
         raise NotImplementedError
     
+    @abstractmethod
     def flip_five_coins(self):
         raise NotImplementedError
     
+    @abstractmethod
     def toggle_show_flipping_animations(self):
         raise NotImplementedError
     
+    @abstractmethod
     def label_fair(self):
         raise NotImplementedError
 
+    @abstractmethod
     def label_cheater(self):
         raise NotImplementedError
 
     # The following methods are optional and can be implmented by the class inheriting from this class.
+    
+    @abstractmethod
     def render(self, mode='human'):
         raise NotImplementedError
     
+    @abstractmethod
     def close(self, seed=None):
         raise NotImplementedError
