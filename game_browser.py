@@ -1,3 +1,4 @@
+# Albert Aillet, April 2022
 import io, re, time
 from PIL import Image
 import pytesseract as tess
@@ -17,8 +18,6 @@ class CoinGameBrower(CoinGame):
                  window_size = (300,850),
                  label_animation_time = 1.3,
                  game_over_animate_time = 2.0):
-
-        
         
         driver_not_provided = (driver is None)
         if driver_not_provided:
@@ -27,7 +26,7 @@ class CoinGameBrower(CoinGame):
         self.driver = driver
         self.window_size = window_size
         self.label_animation_time = label_animation_time
-        self.done_animate_time = game_over_animate_time
+        self.done_animation_time = game_over_animate_time
 
         super().__init__()
 
@@ -169,7 +168,7 @@ class CoinGameBrower(CoinGame):
         if not self.done:
             self._click_location(*self.clicking_locations[label])
         if self.flips_left <= 30:
-            time.sleep(self.done_animate_time)
+            time.sleep(self.done_animation_time)
         else:
             time.sleep(self.label_animation_time)
         self.outdated_data = True

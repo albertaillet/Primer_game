@@ -1,5 +1,8 @@
+# Albert Aillet, April 2022
+# inspired by https://github.com/openai/gym/blob/master/gym/envs/toy_text/blackjack.py
+# and https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
 import gym
-from gym import spaces
+from gym import spaces, logger
 from gym.utils import seeding
 
 import numpy as np
@@ -8,28 +11,31 @@ class CoinGame(gym.Env):
 
     """
     ### Description
-    The CoinGame environment is a simple game where the player has label an opponent as either a fair or a cheater.
+    The CoinGame environment is a simple game where the player has to label an opponent as either fair or a cheater.
     The player starts with 100 available flips.
+    The player can use one flip for the opponent to flip their coin and the player can observe the outcome. 
+    The opponent can either be fair and have a unbiased coin or be a cheater and have a coin that comes up heads too often.
     The player is rewarded with 15 flips for correctly labeling the opponent and -30 for incorrectly labeling the opponent.
-    The player can flip one coin, flip five coins, label the opponent as fair, or label the opponent as cheater.
-    The player loses when they do not have any flips remaining.
+    After labeling an opponent, they are replaced with another one with a different coin.
+    The player can flip one coin, flip five coins, label the opponent as fair or label the opponent as cheater.
+    The player loses when they have no flips remaining and labels the opponent incorrectly.
 
     ### Observation Space
     The observation is a 3-tuple containing the following:
-    | Num | Observation                                                 | Min  | Max         | Unit   |
-    |-----|-------------------------------------------------------------|------|-------------|--------|
-    | 0   | Number of heads                                             | 0    | around 500  | amount |
-    | 1   | Number of tails                                             | 0    | around 500  | amount |
-    | 3   | Number of flips left                                        | 0    | around 500  | amount |
+    | Num | Observation                          | Min  | Max         | Unit   |
+    |-----|--------------------------------------|------|-------------|--------|
+    | 0   | Number of heads                      | 0    | around 500  | amount |
+    | 1   | Number of tails                      | 0    | around 500  | amount |
+    | 3   | Number of flips left                 | 0    | around 500  | amount |
     
     ### Action Space
     There are 4 discrete actions:
-    | Num | Action                                                      |
-    |-----|-------------------------------------------------------------|
-    | 0   | Flip one coin                                               |
-    | 1   | Flip five coins                                             |
-    | 2   | Label the current player as fair                            |
-    | 3   | Label the current player as cheater                         |
+    | Num | Action                               |
+    |-----|--------------------------------------|
+    | 0   | Flip one coin                        |
+    | 1   | Flip five coins                      |
+    | 2   | Label the current player as fair     |
+    | 3   | Label the current player as cheater  |
     
        
     ### Reward:
@@ -37,9 +43,8 @@ class CoinGame(gym.Env):
     - Incorrectly labeling the opponent: -30 flips
 
     ### Episode Termination
-    The episode terminates if either of the following happens:
-    1. The position of the car is greater than or equal to 0.5 (the goal position on top of the right hill)
-    2. The length of the episode is 200.
+    - Player loses when they have no flips remaining and labels the opponent incorrectly.
+    
     """
 
     def __init__(self):
@@ -55,9 +60,28 @@ class CoinGame(gym.Env):
         assert self.action_space.contains(action), f"{action!r} ({type(action)}) invalid"
         old_score = self.score
 
+        if action == 0:
+            self.flip_one_coin()
+        elif action == 1:
+            self.flip_five_coins()
+        elif action == 2:
+            self.label_fair()
+        elif action == 3:
+            self.label_cheater()
+        else: 
+            raise ValueError(f"{action!r} ({type(action)}) invalid")
+        
+        data = self.get_data()
         new_score = self.score
         reward = new_score - old_score
-        return self.get_data(), reward, self.done, {}
+        if self.done:
+            logger.warn(
+                "You are calling 'step()' even though this "
+                "environment has already returned done = True. You "
+                "should always call 'reset()' once you receive 'done = "
+                "True' -- any further steps are undefined behavior."
+            )
+        return data, reward, self.done, {}
 
     def reset(self, return_info=False, seed=None):
         self.reset_game()

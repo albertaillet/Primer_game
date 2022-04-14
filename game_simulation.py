@@ -1,3 +1,4 @@
+# Albert Aillet, April 2022
 import random
 from game import CoinGame
 
