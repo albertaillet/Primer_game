@@ -3,7 +3,9 @@ from game import CoinGame
 
 class CoinGameSimulation(CoinGame):
 
-    def __init__(self):     
+    def __init__(self):
+        super().__init__()
+
         self.correct_label_bonus = 15
         self.incorrect_label_penalty = -30
         self.start_flips = 100
@@ -13,15 +15,15 @@ class CoinGameSimulation(CoinGame):
 
         self.new_blob()
 
-        self.game_over = False
+        self.done = False
     
     def new_blob(self):
         self.player = Player()
         self.heads = 0
         self.tails = 0
 
-    def get_data(self) -> dict: 
-        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], [self.heads, self.tails, self.score, self.flips_left])}
+    def get_data(self) -> tuple: 
+        return self.heads, self.tails, self.flips_left 
     
     def flip_one_coin(self):
         if self.flips_left > 0:
@@ -49,7 +51,7 @@ class CoinGameSimulation(CoinGame):
             self.flips_left += self.incorrect_label_penalty
         self.new_blob()
         if self.flips_left <= 0:
-            self.game_over = True
+            self.done = True
 
     def reset_game(self):
         self.__init__()

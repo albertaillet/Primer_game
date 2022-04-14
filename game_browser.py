@@ -17,26 +17,29 @@ class CoinGameBrower(CoinGame):
                  window_size = (300,850),
                  label_animation_time = 1.3,
                  game_over_animate_time = 2.0):
+
+        
         
         driver_not_provided = (driver is None)
         if driver_not_provided:
             driver = self._get_driver()
-            driver.get('https://primerlearning.org/')
-        
-        self.driver = driver
-        self.element = self.driver.find_element_by_id("coin-flip-app")
-        self.window_size = window_size
-        self.reset_window()
 
+        self.driver = driver
+        self.window_size = window_size
         self.label_animation_time = label_animation_time
-        self.game_over_animate_time = game_over_animate_time
+        self.done_animate_time = game_over_animate_time
+
+        super().__init__()
+
+        self.element = self.driver.find_element_by_id("coin-flip-app")
+        self.reset_window()
 
         self.heads = None
         self.tails = None
         self.score = None
         self.flips_left = None
 
-        self.game_over = False
+        self.done = False
         self.outdated_data = True
     
         self.re_heads = re.compile(r"(?<=Heads: )[\d]+")
@@ -71,7 +74,9 @@ class CoinGameBrower(CoinGame):
         chrome_options = webdriver.ChromeOptions()
         mobile_emulation = { "deviceName": "iPhone 6" }
         chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
-        return webdriver.Chrome(executable_path=chromedirver_path, options= chrome_options)
+        driver = webdriver.Chrome(executable_path=chromedirver_path, options= chrome_options)
+        driver.get('https://primerlearning.org/')
+        return driver
 
     def reset_window(self):
         self.driver.set_window_size(*self.window_size)
@@ -92,8 +97,7 @@ class CoinGameBrower(CoinGame):
         if self.outdated_data or any(val is None for val in [self.heads, self.tails, self.score, self.flips_left]):
             self._update_data()
 
-        return {k:v for k, v in zip(["heads", "tails", "score", "flips_left"], 
-                                    [self.heads, self.tails, self.score, self.flips_left])}
+        return self.heads, self.tails, self.flips_left
 
     def _update_data(self):
         screenshot = self.get_page_screenshot()
@@ -101,7 +105,7 @@ class CoinGameBrower(CoinGame):
         crop = screenshot.crop((0, 490, 750, 985))
         text = CoinGameBrower._get_image_text(crop)
 
-        self.game_over = "the leaderboard" in text.lower() or "game over" in text.lower()
+        self.done = "the leaderboard" in text.lower() or "game over" in text.lower()
 
         self.heads = self.parse_heads(text)
         self.tails = self.parse_tails(text)
@@ -142,17 +146,17 @@ class CoinGameBrower(CoinGame):
         self.outdated_data = True
 
     def flip_one_coin(self):
-        if (not self.game_over) and (self.flips_left > 0):
+        if (not self.done) and (self.flips_left > 0):
             self._click_location(*self.clicking_locations["flip_one"])
             self.flips_left -= 1
     
     def flip_five_coins(self):
-        if (not self.game_over) and (self.flips_left >= 5):
+        if (not self.done) and (self.flips_left >= 5):
             self._click_location(*self.clicking_locations["flip_five"])
             self.flips_left -= 5
     
     def toggle_show_flipping_animations(self):
-        if not self.game_over:
+        if not self.done:
             self._click_location(*self.clicking_locations["toggle_show_flipping_animations"])
     
     def label_fair(self):
@@ -162,20 +166,20 @@ class CoinGameBrower(CoinGame):
         self._label("label_cheater")
 
     def _label(self, label):
-        if not self.game_over:
+        if not self.done:
             self._click_location(*self.clicking_locations[label])
         if self.flips_left <= 30:
-            time.sleep(self.game_over_animate_time)
+            time.sleep(self.done_animate_time)
         else:
             time.sleep(self.label_animation_time)
         self.outdated_data = True
         self._update_data()
 
     def reset_game(self):
-        if self.game_over:
+        if self.done:
             self._click_location(*self.clicking_locations["reset"])
             self.reset_window()
-            self.game_over = False
+            self.done = False
             self.outdated_data = True
             time.sleep(self.label_animation_time)
             self._update_data()
