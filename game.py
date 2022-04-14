@@ -25,9 +25,9 @@ class CoinGame(gym.Env):
     The observation is a 3-tuple containing the following:
     | Num | Observation                          | Min  | Max         | Unit   |
     |-----|--------------------------------------|------|-------------|--------|
-    | 0   | Number of heads                      | 0    | around 100  | amount |
-    | 1   | Number of tails                      | 0    | around 100  | amount |
-    | 3   | Number of flips left                 | 0    | around 100  | amount |
+    | 0   | Number of heads                      | 0    | around 200  | amount |
+    | 1   | Number of tails                      | 0    | around 200  | amount |
+    | 3   | Number of flips left                 | 0    | around 200  | amount |
     
     ### Action Space
     There are 4 discrete actions:
@@ -42,24 +42,23 @@ class CoinGame(gym.Env):
     ### Reward:
     - Correctly labeling the opponent: 15 flips
     - Incorrectly labeling the opponent: -30 flips
+    - TODO: tweak reward system
 
     ### Episode Termination
     - Player loses when they have no flips remaining and labels the opponent incorrectly.
     
     """
 
-    def __init__(self):
-        #max_value = np.iinfo(np.int64).max
-        max_value = 100
+    def __init__(self, max_value = 200):     
         self.observation_space =  spaces.Tuple(
             (spaces.Discrete(max_value), spaces.Discrete(max_value), spaces.Discrete(max_value))
         )
         self.action_space = spaces.Discrete(4)
         self.seed()
         # the following properties are set by the subclass:
-        self.score = 0
-        self.flips_left = 0
-        self.done = False
+        self.score = None
+        self.flips_left = None
+        self.done = None
 
 
     def step(self, action: int) -> tuple:
@@ -98,8 +97,6 @@ class CoinGame(gym.Env):
         else:
             return self.observe(), {}
 
-    # The following methods have to be implmented by the class inheriting from this class.
-
     @abstractmethod
     def reset_game(self):
         raise NotImplementedError
@@ -126,14 +123,4 @@ class CoinGame(gym.Env):
 
     @abstractmethod
     def label_cheater(self):
-        raise NotImplementedError
-
-    # The following methods are optional and can be implmented by the class inheriting from this class.
-    
-    @abstractmethod
-    def render(self, mode='human'):
-        raise NotImplementedError
-    
-    @abstractmethod
-    def close(self, seed=None):
         raise NotImplementedError
