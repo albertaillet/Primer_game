@@ -1,9 +1,14 @@
 # Albert Aillet, April 2022
+# Makes use of the CoinGame class and the Primer website 
+# https://primerlearning.org/ from the YouTube channel
+# Primer: https://www.youtube.com/channel/UCKzJFdi57J53Vr_BkTfN3uQ
+
 import io, re, time
 from PIL import Image
 import pytesseract as tess
 from game import CoinGame
 
+game_website_link = 'https://primerlearning.org/'
 chromedirver_path = "C:\\Users\\alber\\Documents\\My_Code\\Python_sandbox\\Primer_game\\chromedriver.exe"
 tess.pytesseract.tesseract_cmd = "C:\\Users\\alber\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe"
 
@@ -11,7 +16,7 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 
-class CoinGameBrower(CoinGame):
+class CoinGameBrowser(CoinGame):
 
     def __init__(self, 
                  driver=None,
@@ -21,7 +26,7 @@ class CoinGameBrower(CoinGame):
         
         driver_not_provided = (driver is None)
         if driver_not_provided:
-            driver = self._get_driver()
+            driver = CoinGameBrowser.get_driver()
 
         self.driver = driver
         self.window_size = window_size
@@ -59,7 +64,8 @@ class CoinGameBrower(CoinGame):
             self._wait_for_loading()
             time.sleep(2) # wait for starting animation to finish
             self.toggle_show_flipping_animations()
-            self._update_data()
+        
+        self._update_data()
         
     def _wait_for_loading(self):
         iframe = self.driver.find_elements_by_tag_name('iframe')[0]
@@ -69,12 +75,13 @@ class CoinGameBrower(CoinGame):
                              .get_attribute("style") == "width: 100%;")
         self.driver.switch_to.default_content()
 
-    def _get_driver(self):
+    @staticmethod
+    def get_driver():
         chrome_options = webdriver.ChromeOptions()
         mobile_emulation = { "deviceName": "iPhone 6" }
         chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
         driver = webdriver.Chrome(executable_path=chromedirver_path, options= chrome_options)
-        driver.get('https://primerlearning.org/')
+        driver.get(game_website_link)
         return driver
 
     def reset_window(self):
@@ -102,7 +109,7 @@ class CoinGameBrower(CoinGame):
         screenshot = self.get_page_screenshot()
 
         crop = screenshot.crop((0, 490, 750, 985))
-        text = CoinGameBrower._get_image_text(crop)
+        text = CoinGameBrowser._get_image_text(crop)
 
         self.done = "the leaderboard" in text.lower() or "game over" in text.lower()
 
