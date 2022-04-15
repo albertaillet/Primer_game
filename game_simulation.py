@@ -11,6 +11,12 @@ class CoinGameSimulation(CoinGame):
         self.incorrect_label_penalty = -30
         self.start_flips = 100
         self.reset_game()
+
+    def reset_game(self):
+        self.score = 0
+        self.flips_left = self.start_flips
+        self.new_opponent()
+        self.done = False
     
     def new_opponent(self):
         self.opponent = Opponent()
@@ -45,16 +51,8 @@ class CoinGameSimulation(CoinGame):
         else:
             self.flips_left += self.incorrect_label_penalty
         self.new_opponent()
-        if self.flips_left <= 0:
+        if self.flips_left < 0:
             self.done = True
-
-    def reset_game(self):
-        self.score = 0
-        self.flips_left = self.start_flips
-
-        self.new_opponent()
-
-        self.done = False
 
 
 class Opponent():
