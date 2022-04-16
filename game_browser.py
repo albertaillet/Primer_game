@@ -9,7 +9,7 @@ import pytesseract as tess
 from game import CoinGame
 
 game_website_link = 'https://primerlearning.org/'
-chromedirver_path = "C:\\Users\\alber\\Documents\\My_Code\\Python_sandbox\\Primer_game\\chromedriver.exe"
+chromedirver_path = "C:\\Users\\alber\\Documents\\My_Code\\Primer_game\\chromedriver.exe"
 tess.pytesseract.tesseract_cmd = "C:\\Users\\alber\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe"
 
 from selenium import webdriver
