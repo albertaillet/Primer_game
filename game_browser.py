@@ -22,7 +22,7 @@ class CoinGameBrowser(CoinGame):
                  driver=None,
                  window_size = (300,850),
                  label_animation_time = 1.3,
-                 game_over_animate_time = 2.0):
+                 game_over_animate_time = 3.0):
         
         driver_not_provided = (driver is None)
         if driver_not_provided:
