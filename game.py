@@ -63,6 +63,14 @@ class CoinGame(gym.Env):
 
     def step(self, action: int) -> tuple:
         assert self.action_space.contains(action), f"{action!r} ({type(action)}) invalid"
+        if self.done:
+            logger.warn(
+                "You are calling 'step()' even though this "
+                "environment has already returned done = True. You "
+                "should always call 'reset()' once you receive 'done = "
+                "True' -- any further steps are undefined behavior."
+            )
+        
         old_score, old_flips_left = self.score, self.flips_left
 
         if action == 0:
@@ -78,15 +86,10 @@ class CoinGame(gym.Env):
         
         data = self.observe()
         new_score, new_flips_left = self.score, self.flips_left
+        
+        # reward is the number of gained or lost flips from the previous state
         reward = new_flips_left - old_flips_left
-        if self.done:
-            logger.warn(
-                "You are calling 'step()' even though this "
-                "environment has already returned done = True. You "
-                "should always call 'reset()' once you receive 'done = "
-                "True' -- any further steps are undefined behavior."
-            )
-        return data, reward, self.done, {}
+        return data, reward, self.done, {"score": new_score}
 
     def reset(self, return_info=False, seed=None):
         self.reset_game()
