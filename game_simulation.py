@@ -60,7 +60,7 @@ class Opponent():
     def __init__(self) -> None:
         unif = random.random()
         if unif > 0.5:
-            self.p = unif
+            self.p = 0.75
             self.ground_truth_label = "cheater"
         else:
             self.p = 0.5
