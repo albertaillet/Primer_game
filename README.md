@@ -9,3 +9,8 @@ You lose when you are in debt to a player (have less that 0 dollars left).
 
 What is the optimal strategy if there is one.
 Is it possible to play the game indefinitely?
+
+
+The notification sound used is taken from
+[mixkit.co](https://mixkit.co/free-sound-effects/coin/) 
+under the name *Coin win notification*.
