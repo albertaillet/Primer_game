@@ -4,7 +4,7 @@
 # Primer: https://www.youtube.com/channel/UCKzJFdi57J53Vr_BkTfN3uQ
 
 import io, re, time
-from PIL import Image
+from PIL import Image, ImageOps
 import pytesseract as tess
 from game import CoinGame
 
@@ -93,6 +93,7 @@ class CoinGameBrowser(CoinGame):
         screenshot = self.driver.get_screenshot_as_png()
         screenshot = io.BytesIO(screenshot)
         screenshot = Image.open(screenshot).convert('L')
+        screenshot = ImageOps.invert(screenshot)
         return screenshot
 
     @staticmethod
