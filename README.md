@@ -8,11 +8,6 @@ This is a repository for my strategies to the game [Coin Flip Cheaters: A game f
 
 `game_browser.py` includes the class `CoinGameBrowser` that builds on `CoinGame` and iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
 
-## Strategies:
-
-My strategies can be found in the `strategies` directory.
-The most succestful one was the simple bayesian strategy.
-
 ## How to use:
 
 To get exactly the same dependencies as I used, create the conda environment using:
@@ -63,10 +58,6 @@ while not done:
     action = strategy(n_heads, n_tails, flips_left)
     (n_heads, n_tails, flips_left), reward, done, info = g.step(action)
 ```	
-
-The finished run notification sound used is taken from
-[mixkit.co](https://mixkit.co/free-sound-effects/coin/) 
-under the name *Coin win notification*.
 
 ## My highscore:
 

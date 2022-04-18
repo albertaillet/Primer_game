@@ -1,5 +1,5 @@
 """
- Albert Aillet, April 2022
+Albert Aillet, April 2022
 Makes use of the CoinGame class and the Primer website 
 https://primerlearning.org/ from the YouTube channel
 Primer: https://www.youtube.com/channel/UCKzJFdi57J53Vr_BkTfN3uQ
