@@ -41,7 +41,7 @@ while not done:
     (n_heads, n_tails, flips_left), reward, done, info = g.step(action)
 ```	
 
-To use the brower interaction environment you first need to install [FireFox](https://www.mozilla.org/en-US/firefox/new/), [geckodriver](https://github.com/mozilla/geckodriver/releases/) and [Tesseract OCR](https://github.com/tesseract-ocr/tesseract/releases).
+To use the browser interaction environment you first need to install [FireFox](https://www.mozilla.org/en-US/firefox/new/), [geckodriver](https://github.com/mozilla/geckodriver/releases/) and [Tesseract OCR](https://github.com/tesseract-ocr/tesseract/releases).
 You then change the file paths in `game_browser.py` to use your files by changing `geckodriver_path` and `tess.pytesseract.tesseract_cmd`.
 
 The browser interaction environment can then be used with the same [gym](https://github.com/openai/gym/) API:
@@ -64,7 +64,7 @@ while not done:
     (n_heads, n_tails, flips_left), reward, done, info = g.step(action)
 ```	
 
-The notification sound used is taken from
+The finished run notification sound used is taken from
 [mixkit.co](https://mixkit.co/free-sound-effects/coin/) 
 under the name *Coin win notification*.
 
