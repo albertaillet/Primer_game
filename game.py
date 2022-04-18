@@ -6,8 +6,6 @@ from gym import spaces, logger
 from abc import abstractmethod
 
 
-import numpy as np
-
 class CoinGame(gym.Env):
 
     """
@@ -23,11 +21,11 @@ class CoinGame(gym.Env):
 
     ### Observation Space
     The observation is a 3-tuple containing the following:
-    | Num | Observation                          | Min  | Max         | Unit   |
-    |-----|--------------------------------------|------|-------------|--------|
-    | 0   | Number of heads                      | 0    | around 200  | amount |
-    | 1   | Number of tails                      | 0    | around 200  | amount |
-    | 3   | Number of flips left                 | 0    | around 200  | amount |
+    | Num | Observation                          | Min  | Max  | Unit   |
+    |-----|--------------------------------------|------|------|--------|
+    | 0   | Number of heads                      | 0    | Inf  | amount |
+    | 1   | Number of tails                      | 0    | Inf  | amount |
+    | 3   | Number of flips left                 | 0    | Inf  | amount |
     
     ### Action Space
     There are 4 discrete actions:
@@ -49,9 +47,9 @@ class CoinGame(gym.Env):
     
     """
 
-    def __init__(self, max_value = 200):     
+    def __init__(self):     
         self.observation_space =  spaces.Tuple(
-            (spaces.Discrete(max_value), spaces.Discrete(max_value), spaces.Discrete(max_value))
+            (spaces.Discrete(100), spaces.Discrete(100), spaces.Discrete(1000))
         )
         self.action_space = spaces.Discrete(4)
         self.seed()
@@ -71,7 +69,7 @@ class CoinGame(gym.Env):
                 "True' -- any further steps are undefined behavior."
             )
         
-        old_score, old_flips_left = self.score, self.flips_left
+        old_flips_left = self.flips_left
 
         if action == 0:
             self.flip_one_coin()
@@ -81,8 +79,6 @@ class CoinGame(gym.Env):
             self.label_fair()
         elif action == 3:
             self.label_cheater()
-        else: 
-            raise ValueError(f"{action!r} ({type(action)}) invalid")
         
         data = self.observe()
         new_score, new_flips_left = self.score, self.flips_left
