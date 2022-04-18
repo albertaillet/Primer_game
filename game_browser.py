@@ -162,6 +162,10 @@ class CoinGameBrowser(CoinGame):
                 break
             
             tries += 1
+        
+        if tries == 3:
+            print("Failed to read game data. diff heads{}, diff tails{}, diff score{}, diff flips left{}".format(
+                  new_heads-old_heads, new_tails-old_tails, new_flips_left-old_flips_left, new_flips_left-old_flips_left))
 
         self.heads = new_heads if new_heads is not None else old_heads
         self.tails = new_tails if new_tails is not None else old_tails
@@ -226,10 +230,12 @@ class CoinGameBrowser(CoinGame):
     def _label(self, label):
         if not self.done:
             self._click_location(*self.clicking_locations[label])
-        if self.flips_left <= 30:
-            time.sleep(self.done_animation_time)
-        else:
-            time.sleep(self.label_animation_time)
+            if self.flips_left <= 30:
+                time.sleep(self.done_animation_time)
+            else:
+                time.sleep(self.label_animation_time)
+            self.heads = 0
+            self.tails = 0
 
     def reset_game(self):
         if self.done:
