@@ -1,14 +1,18 @@
-# Albert Aillet, April 2022
-# Makes use of the CoinGame class and the Primer website 
-# https://primerlearning.org/ from the YouTube channel
-# Primer: https://www.youtube.com/channel/UCKzJFdi57J53Vr_BkTfN3uQ
+"""
+ Albert Aillet, April 2022
+Makes use of the CoinGame class and the Primer website 
+https://primerlearning.org/ from the YouTube channel
+Primer: https://www.youtube.com/channel/UCKzJFdi57J53Vr_BkTfN3uQ
 
+Used the following thread to resolve ActionChain issue:
+https://stackoverflow.com/questions/67614276/perform-and-reset-actions-in-actionchains-not-working-selenium-python
+"""
 import io, re, time
 import pytesseract as tess
 from PIL import Image, ImageOps
 
 game_website_link = 'https://primerlearning.org/'
-geckodirver_path = r"C:\Users\alber\Documents\My_Code\Primer_game\geckodriver.exe"
+geckodriver_path = r"C:\Users\alber\Documents\My_Code\Primer_game\geckodriver.exe"
 tess.pytesseract.tesseract_cmd = r"C:\Users\alber\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
 
 from selenium import webdriver
@@ -25,7 +29,9 @@ class CoinGameBrowser(CoinGame):
                  driver=None,
                  window_size = (465,820),
                  label_animation_time = 1.3,
-                 game_over_animate_time = 3.0):
+                 game_over_animate_time = 3.0,
+                 mask_blob = False
+                 ):
         
         driver_not_provided = (driver is None)
         if driver_not_provided:
@@ -35,6 +41,7 @@ class CoinGameBrowser(CoinGame):
         self.window_size = window_size
         self.label_animation_time = label_animation_time
         self.done_animation_time = game_over_animate_time
+        self.mask_blob = mask_blob
 
         super().__init__()
 
@@ -42,10 +49,10 @@ class CoinGameBrowser(CoinGame):
         self.action_chain = ActionChains(self.driver)
         self.reset_window()
 
-        self.heads = None
-        self.tails = None
-        self.score = None
-        self.flips_left = None
+        self.heads = 0
+        self.tails = 0
+        self.score = 0
+        self.flips_left = 100
 
         self.done = False
         self.outdated_data = True
@@ -57,7 +64,7 @@ class CoinGameBrowser(CoinGame):
 
         self.clicking_locations = {
             "flip_one": (250, 1050),
-            "flip_five": (500, 1150),
+            "flip_five": (500, 1050),
             "toggle_show_flipping_animations": (360, 1150),
             "label_fair": (250, 1200),
             "label_cheater": (500, 1200),
@@ -81,11 +88,11 @@ class CoinGameBrowser(CoinGame):
 
     @staticmethod
     def get_driver():
-        # get the driver
-        driver = webdriver.Firefox(executable_path=geckodirver_path)
+        # Get the Firefox driver and load the game website.
+        driver = webdriver.Firefox(executable_path=geckodriver_path)
         driver.get(game_website_link)
 
-        # set correct zoom level.
+        # Set correct zoom level.
         driver.set_context("chrome") 
         win = driver.find_element_by_tag_name("body")
         for _ in range(4):
@@ -107,8 +114,8 @@ class CoinGameBrowser(CoinGame):
         return screenshot
 
     @staticmethod
-    def _get_image_text(image):
-        return tess.image_to_string(image)
+    def _get_image_text(image, **kwargs):
+        return tess.image_to_string(image, **kwargs)
 
     def observe(self) -> tuple: 
         if self.outdated_data or any(val is None for val in (self.heads, self.tails, self.score, self.flips_left)):
@@ -117,20 +124,57 @@ class CoinGameBrowser(CoinGame):
         return self.heads, self.tails, self.flips_left
 
     def _update_data(self):
-        screenshot = self.get_page_screenshot()
+        old_heads = self.heads
+        old_tails = self.tails
+        old_score = self.score
+        old_flips_left = self.flips_left
 
-        # x_size: (0, 1133)
-        crop = screenshot.crop((100, 800, 980, 1420))
-        text = CoinGameBrowser._get_image_text(crop)
+        tries = 0
+        while tries < 3:
 
-        l = text.lower()
-        self.done = "the leaderboard" in l or "game over" in l
+            s = time.time()
+            screenshot = self.get_page_screenshot()
+            print("SC time  {:.3f}".format(time.time() - s))
 
-        self.heads = self.parse_heads(text)
-        self.tails = self.parse_tails(text)
-        self.score = self.parse_score(text)
-        self.flips_left = self.parse_flips_left(text)
+            crop = screenshot.crop((100, 800, 980, 1420))
+            if self.mask_blob:
+                blob_mask = Image.new('L', (120, 220), (205))
+                crop.paste(blob_mask, (210, 0))
 
+            s = time.time()
+            text = CoinGameBrowser._get_image_text(crop, config="--psm 6 --oem 3")
+            print("OCR time {:.3f}".format(time.time() - s))
+
+            l = text.lower()
+            self.done = "save your score to the leaderboard?" in l or "game over" in l
+
+            new_heads = self.parse_heads(text)
+            new_tails = self.parse_tails(text)
+            new_score = self.parse_score(text)
+            new_flips_left = self.parse_flips_left(text)
+            
+            if self.done:
+                break
+
+            if (new_heads is not None and
+                new_tails is not None and
+                new_score is not None and
+                new_flips_left is not None and
+                new_heads-old_heads in (0, 1) and 
+                new_tails-old_tails in (0, 1) and
+                new_score-old_score in (0, 1) and 
+                new_flips_left-old_flips_left in (15, 0, -1, -30)):
+                break
+                
+            print(f"diff heads: {new_heads-old_heads}, diff_tails: {new_tails-old_tails}, diff_score: {new_score-old_score}, diff_flips_left: {new_flips_left-old_flips_left}")
+            tries += 1
+            time.sleep(0.5)
+        
+        self.heads = new_heads if new_heads is not None else old_heads
+        self.tails = new_tails if new_tails is not None else old_tails
+        self.score = new_score if new_score is not None else old_score
+        self.flips_left = new_flips_left if new_flips_left is not None else old_flips_left
+        
         self.outdated_data = False
 
     def parse_heads(self, string) -> int:
@@ -193,8 +237,6 @@ class CoinGameBrowser(CoinGame):
             time.sleep(self.done_animation_time)
         else:
             time.sleep(self.label_animation_time)
-        self.outdated_data = True
-        self._update_data()
 
     def reset_game(self):
         if self.done:

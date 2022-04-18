@@ -1,3 +1,4 @@
 notebooks/__pycache__/*
 __pycache__/*
 geckodriver.exe
+*/geckodriver.log
