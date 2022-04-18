@@ -1,5 +1,5 @@
 __pycache__/*
 notebooks/__pycache__/*
-notebooks/strategies/__pycache__/*
+strategies/__pycache__/*
 geckodriver.exe
 */geckodriver.log
