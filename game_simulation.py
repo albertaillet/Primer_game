@@ -39,10 +39,10 @@ class CoinGameSimulation(CoinGame):
             self.flip_one_coin()
     
     def label_fair(self):
-        self._label("fair")
+        self._label(0)
 
     def label_cheater(self):
-        self._label("cheater")
+        self._label(1)
 
     def _label(self, label: str):
         if label == self.opponent.ground_truth_label:
@@ -58,13 +58,14 @@ class CoinGameSimulation(CoinGame):
 class Opponent():
 
     def __init__(self) -> None:
+        # 0: fair, 1: cheater
         unif = random.random()
         if unif > 0.5:
             self.p = 0.75
-            self.ground_truth_label = "cheater"
+            self.ground_truth_label = 1
         else:
             self.p = 0.5
-            self.ground_truth_label = "fair"
+            self.ground_truth_label = 0
     
     def flip(self) -> bool:
         # True: heads, False: tails
