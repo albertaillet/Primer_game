@@ -131,19 +131,14 @@ class CoinGameBrowser(CoinGame):
 
         tries = 0
         while tries < 3:
-
-            s = time.time()
             screenshot = self.get_page_screenshot()
-            print("SC time  {:.3f}".format(time.time() - s))
 
             crop = screenshot.crop((100, 800, 980, 1420))
             if self.mask_blob:
                 blob_mask = Image.new('L', (120, 220), (205))
                 crop.paste(blob_mask, (210, 0))
 
-            s = time.time()
             text = CoinGameBrowser._get_image_text(crop, config="--psm 6 --oem 3")
-            print("OCR time {:.3f}".format(time.time() - s))
 
             l = text.lower()
             self.done = "save your score to the leaderboard?" in l or "game over" in l
@@ -160,16 +155,14 @@ class CoinGameBrowser(CoinGame):
                 new_tails is not None and
                 new_score is not None and
                 new_flips_left is not None and
-                new_heads-old_heads in (0, 1) and 
-                new_tails-old_tails in (0, 1) and
+                (new_heads-old_heads in (0, 1) or new_heads==0) and 
+                (new_tails-old_tails in (0, 1) or new_tails==0) and
                 new_score-old_score in (0, 1) and 
                 new_flips_left-old_flips_left in (15, 0, -1, -30)):
                 break
-                
-            print(f"diff heads: {new_heads-old_heads}, diff_tails: {new_tails-old_tails}, diff_score: {new_score-old_score}, diff_flips_left: {new_flips_left-old_flips_left}")
+            
             tries += 1
-            time.sleep(0.5)
-        
+
         self.heads = new_heads if new_heads is not None else old_heads
         self.tails = new_tails if new_tails is not None else old_tails
         self.score = new_score if new_score is not None else old_score
@@ -240,6 +233,10 @@ class CoinGameBrowser(CoinGame):
 
     def reset_game(self):
         if self.done:
+            self.heads = 0
+            self.tails = 0
+            self.score = 0
+            self.flips_left = 100
             self._click_location(*self.clicking_locations["reset"])
             self.reset_window()
             self.done = False
