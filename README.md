@@ -67,3 +67,11 @@ while not done:
 The notification sound used is taken from
 [mixkit.co](https://mixkit.co/free-sound-effects/coin/) 
 under the name *Coin win notification*.
+
+## My highscore:
+
+The highest score I have achieved was a 10+ hours overnight run with the following score:
+
+<p align="center" title = "My highscore">
+  <img src="highscore.png" />
+</p>
