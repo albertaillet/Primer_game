@@ -40,7 +40,6 @@ class CoinGame(gym.Env):
     ### Reward:
     - Correctly labeling the opponent: 15 flips
     - Incorrectly labeling the opponent: -30 flips
-    - TODO: tweak reward system
 
     ### Episode Termination
     - Player loses when they have no flips remaining and labels the opponent incorrectly.
