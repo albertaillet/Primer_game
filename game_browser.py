@@ -4,23 +4,26 @@
 # Primer: https://www.youtube.com/channel/UCKzJFdi57J53Vr_BkTfN3uQ
 
 import io, re, time
-from PIL import Image, ImageOps
 import pytesseract as tess
-from game import CoinGame
+from PIL import Image, ImageOps
 
 game_website_link = 'https://primerlearning.org/'
-chromedirver_path = "C:\\Users\\alber\\Documents\\My_Code\\Primer_game\\chromedriver.exe"
-tess.pytesseract.tesseract_cmd = "C:\\Users\\alber\\AppData\\Local\\Programs\\Tesseract-OCR\\tesseract.exe"
+geckodirver_path = r"C:\Users\alber\Documents\My_Code\Primer_game\geckodriver.exe"
+tess.pytesseract.tesseract_cmd = r"C:\Users\alber\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
 
 from selenium import webdriver
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
+
+from game import CoinGame
+
 
 class CoinGameBrowser(CoinGame):
 
     def __init__(self, 
                  driver=None,
-                 window_size = (300,850),
+                 window_size = (465,820),
                  label_animation_time = 1.3,
                  game_over_animate_time = 3.0):
         
@@ -36,6 +39,7 @@ class CoinGameBrowser(CoinGame):
         super().__init__()
 
         self.element = self.driver.find_element_by_id("coin-flip-app")
+        self.action_chain = ActionChains(self.driver)
         self.reset_window()
 
         self.heads = None
@@ -52,19 +56,19 @@ class CoinGameBrowser(CoinGame):
         self.re_flips_left = re.compile(r"[\d]+(?= Flips left)")
 
         self.clicking_locations = {
-            "flip_one": (20, 500),
-            "flip_five": (330, 500),
-            "toggle_show_flipping_animations": (50, 550),
-            "label_fair": (20, 600),
-            "label_cheater": (330, 600),
-            "reset": (155, 600),
+            "flip_one": (250, 1050),
+            "flip_five": (500, 1150),
+            "toggle_show_flipping_animations": (360, 1150),
+            "label_fair": (250, 1200),
+            "label_cheater": (500, 1200),
+            "reset": (360, 1200),
         }
 
         if driver_not_provided:
             self._wait_for_loading()
             time.sleep(2) # wait for starting animation to finish
-            self.toggle_show_flipping_animations()
         
+        self.toggle_show_flipping_animations()
         self._update_data()
         
     def _wait_for_loading(self):
@@ -77,16 +81,22 @@ class CoinGameBrowser(CoinGame):
 
     @staticmethod
     def get_driver():
-        chrome_options = webdriver.ChromeOptions()
-        mobile_emulation = { "deviceName": "iPhone 6" }
-        chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
-        driver = webdriver.Chrome(executable_path=chromedirver_path, options= chrome_options)
+        # get the driver
+        driver = webdriver.Firefox(executable_path=geckodirver_path)
         driver.get(game_website_link)
+
+        # set correct zoom level.
+        driver.set_context("chrome") 
+        win = driver.find_element_by_tag_name("body")
+        for _ in range(4):
+            win.send_keys(Keys.CONTROL, "-")
+        driver.set_context("content")
+        driver.set_window_position(-5, 0, windowHandle ='current')
         return driver
 
     def reset_window(self):
         self.driver.set_window_size(*self.window_size)
-        self.driver.execute_script("arguments[0].scrollIntoView();", self.element)
+        self.driver.execute_script("scroll(0, -250);")
 
     def get_page_screenshot(self):
         self.reset_window()
@@ -101,7 +111,7 @@ class CoinGameBrowser(CoinGame):
         return tess.image_to_string(image)
 
     def observe(self) -> tuple: 
-        if self.outdated_data or any(val is None for val in [self.heads, self.tails, self.score, self.flips_left]):
+        if self.outdated_data or any(val is None for val in (self.heads, self.tails, self.score, self.flips_left)):
             self._update_data()
 
         return self.heads, self.tails, self.flips_left
@@ -109,10 +119,12 @@ class CoinGameBrowser(CoinGame):
     def _update_data(self):
         screenshot = self.get_page_screenshot()
 
-        crop = screenshot.crop((0, 490, 750, 985))
+        # x_size: (0, 1133)
+        crop = screenshot.crop((100, 800, 980, 1420))
         text = CoinGameBrowser._get_image_text(crop)
 
-        self.done = "the leaderboard" in text.lower() or "game over" in text.lower()
+        l = text.lower()
+        self.done = "the leaderboard" in l or "game over" in l
 
         self.heads = self.parse_heads(text)
         self.tails = self.parse_tails(text)
@@ -144,10 +156,12 @@ class CoinGameBrowser(CoinGame):
             return int(m.group(0))
 
     def _click_location(self, x, y):
-        action = ActionChains(self.driver)
-        action.move_to_element_with_offset(self.element, x, y)
-        action.click()
-        action.perform()    
+        (self.action_chain.move_to_element_with_offset(self.element, x, y)
+                          .click()
+                          .perform())
+        self.action_chain.reset_actions()
+        for device in self.action_chain.w3c_actions.devices:
+            device.clear_actions()
         if self.heads == 0 and self.tails == 0 and not self.outdated_data:
             time.sleep(self.label_animation_time)
         self.outdated_data = True
