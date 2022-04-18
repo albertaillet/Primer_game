@@ -164,8 +164,8 @@ class CoinGameBrowser(CoinGame):
             tries += 1
         
         if tries == 3:
-            print("Failed to read game data. diff heads{}, diff tails{}, diff score{}, diff flips left{}".format(
-                  new_heads-old_heads, new_tails-old_tails, new_flips_left-old_flips_left, new_flips_left-old_flips_left))
+            print("Failed to read game data. heads {}->{}, tails {}->{}, score {}->{}, flips {}->{}".format(
+                old_heads, new_heads, old_tails, new_tails, old_score, new_score, old_flips_left, new_flips_left))
 
         self.heads = new_heads if new_heads is not None else old_heads
         self.tails = new_tails if new_tails is not None else old_tails
