@@ -4,19 +4,19 @@ This is a repository for my strategies to the game: [Coin Flip Cheaters: A game 
 
 `game.py` includes the class `CoinGame` that uses the openai [gym](https://github.com/openai/gym/) base class to set up the environment.
 
-`game_browser.py` includes the class `CoinGameBrowser` that builds on `CoinGame` and iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
-
 `game_simulation.py` includes the class `CoinGameSimulation` that builds on `CoinGame` and implements a simulation of the game to test out the your strategies or models.
+
+`game_browser.py` includes the class `CoinGameBrowser` that builds on `CoinGame` and iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
 
 ## How to use:
 
-Start with creating the correct conda environment:
+To get exactly the same dependencies as I used, create the conda environment using:
 
 ```bash
 conda env create -f environment.yml
 ```
 
-To use the simulation here is an example, the simulation uses [gym](https://github.com/openai/gym/) API model:
+To use the simulation here is an example, the simulation uses the [gym](https://github.com/openai/gym/) API model:
 
 ```python
 from game_simulation import CoinGameSimulation
@@ -28,7 +28,8 @@ def strategy(n_heads, n_tails, flips_left):
 
 g = CoinGameSimulation()
 
-(n_heads, n_tails, flips_left), info = g.reset(return_info=True)
+(n_heads, n_tails, flips_left) = g.reset()
+
 done = False
 while not done:
     action = strategy(n_heads, n_tails, flips_left)
@@ -36,9 +37,9 @@ while not done:
 ```	
 
 To use the brower interaction environment you first need to install [FireFox](https://www.mozilla.org/en-US/firefox/new/), [geckodriver](https://github.com/mozilla/geckodriver/releases/) and [Tesseract OCR](https://github.com/tesseract-ocr/tesseract/releases).
-You then change the file paths in `game_browser.py` to use the files by changing `geckodriver_path` and `tess.pytesseract.tesseract_cmd`.
+You then change the file paths in `game_browser.py` to use your files by changing `geckodriver_path` and `tess.pytesseract.tesseract_cmd`.
 
-The browser interaction environment can then be with the same [gym](https://github.com/openai/gym/) API model:
+The browser interaction environment can then be used with the same [gym](https://github.com/openai/gym/) API model:
 
 ```python
 from game_browser import CoinGameBrowser
@@ -50,7 +51,8 @@ def strategy(n_heads, n_tails, flips_left):
 
 g = CoinGameBrowser()
 
-(n_heads, n_tails, flips_left), info = g.reset(return_info=True)
+(n_heads, n_tails, flips_left) = g.reset()
+
 done = False
 while not done:
     action = strategy(n_heads, n_tails, flips_left)
