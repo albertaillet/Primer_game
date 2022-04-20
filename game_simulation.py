@@ -1,16 +1,14 @@
-# Albert Aillet, April 2022
+# April 2022
 # Implements the simulated logic of the game.
 import random
 from game import CoinGame
+
 
 class CoinGameSimulation(CoinGame):
 
     def __init__(self):
         super().__init__()
-        self.correct_label_bonus = 15
-        self.incorrect_label_penalty = -30
-        self.start_flips = 100
-        self.reset_game()
+        self.opponent = Opponent()
 
     def reset_game(self):
         self.score = 0
@@ -44,7 +42,7 @@ class CoinGameSimulation(CoinGame):
     def label_cheater(self):
         self._label(1)
 
-    def _label(self, label: str):
+    def _label(self, label: int):
         if label == self.opponent.ground_truth_label:
             self.score += 1
             self.flips_left += self.correct_label_bonus
@@ -55,12 +53,11 @@ class CoinGameSimulation(CoinGame):
             self.done = True
 
 
-class Opponent():
+class Opponent:
 
     def __init__(self) -> None:
         # 0: fair, 1: cheater
-        unif = random.random()
-        if unif > 0.5:
+        if random.random() > 0.5:
             self.p = 0.75
             self.ground_truth_label = 1
         else:
