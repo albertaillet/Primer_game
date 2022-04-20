@@ -3,5 +3,7 @@ notebooks/__pycache__/*
 strategies/__pycache__/*
 geckodriver.exe
 *geckodriver.log
-*bot_runner.py
 *discard.txt
+*bot_*.py
+.idea/*
+*.pdf

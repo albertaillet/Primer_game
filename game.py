@@ -1,31 +1,33 @@
-# Albert Aillet, April 2022
-# inspired by https://github.com/openai/gym/blob/master/gym/envs/toy_text/blackjack.py
-# and https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
+"""
+April 2022
+inspired by https://github.com/openai/gym/blob/master/gym/envs/toy_text/blackjack.py
+and https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py
+"""
 import gym
 from gym import spaces, logger
 from abc import abstractmethod
 
 
 class CoinGame(gym.Env):
-
     """
     ### Description
     The CoinGame environment is a simple game where the player has to label an opponent as either fair or a cheater.
     The player starts with 100 available flips.
-    The player can use one flip for the opponent to flip their coin and the player can observe the outcome. 
-    The opponent can either be fair and have a unbiased coin or be a cheater and have a coin that comes up heads too often.
-    The player is rewarded with 15 flips for correctly labeling the opponent and -30 for incorrectly labeling the opponent.
-    After labeling an opponent, they are replaced with another one with a different coin.
+    The player can use one flip for the opponent to flip their coin and the player can observe the outcome.
+    The opponent can be fair with a probability of 50% and have a unbiased coin that flips heads 50% of the time.
+    The opponent can be a cheater with a probability of 50% and have a biased coin that flips heads 75% of the time.
+    The player is rewarded with 15 extra flips for correctly labeling the opponent and -30 for incorrectly labeling
+    the opponent. After labeling an opponent, they are replaced with another one with a different coin.
     The player can flip one coin, flip five coins, label the opponent as fair or label the opponent as cheater.
     The player loses when they have no flips remaining and labels the opponent incorrectly.
 
     ### Observation Space
     The observation is a 3-tuple containing the following:
-    | Num | Observation                          | Min  | Max  | Unit   |
-    |-----|--------------------------------------|------|------|--------|
-    | 0   | Number of heads                      | 0    | Inf  | amount |
-    | 1   | Number of tails                      | 0    | Inf  | amount |
-    | 3   | Number of flips left                 | 0    | Inf  | amount |
+    | Num | Observation                          | Min  | Max             | Unit   |
+    |-----|--------------------------------------|------|-----------------|--------|
+    | 0   | Number of heads                      | 0    | Inf (set to 99) | amount |
+    | 1   | Number of tails                      | 0    | Inf (set to 99) | amount |
+    | 3   | Number of flips left                 | 0    | Inf             | amount |
     
     ### Action Space
     There are 4 discrete actions:
@@ -35,7 +37,6 @@ class CoinGame(gym.Env):
     | 1   | Flip five coins                      |
     | 2   | Label the current player as fair     |
     | 3   | Label the current player as cheater  |
-    
        
     ### Reward:
     - Correctly labeling the opponent: 15 flips
@@ -43,20 +44,22 @@ class CoinGame(gym.Env):
 
     ### Episode Termination
     - Player loses when they have no flips remaining and labels the opponent incorrectly.
-    
     """
 
     def __init__(self):     
-        self.observation_space =  spaces.Tuple(
-            (spaces.Discrete(100), spaces.Discrete(100), spaces.Discrete(1000))
+        self.observation_space = spaces.Tuple(
+            (spaces.Discrete(99), spaces.Discrete(99), spaces.Discrete(1000))
         )
         self.action_space = spaces.Discrete(4)
         self.seed()
-        # the following properties are set by the subclass:
-        self.score = None
-        self.flips_left = None
-        self.done = None
-
+        self.correct_label_bonus = 15
+        self.incorrect_label_penalty = -30
+        self.start_flips = 100
+        self.heads = 0
+        self.tails = 0
+        self.score = 0
+        self.flips_left = self.start_flips
+        self.done = False
 
     def step(self, action: int) -> tuple:
         assert self.action_space.contains(action), f"{action!r} ({type(action)}) invalid"
@@ -107,10 +110,6 @@ class CoinGame(gym.Env):
     
     @abstractmethod
     def flip_five_coins(self):
-        raise NotImplementedError
-    
-    @abstractmethod
-    def toggle_show_flipping_animations(self):
         raise NotImplementedError
     
     @abstractmethod
