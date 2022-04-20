@@ -26,7 +26,7 @@ class CoinGameBrowser(CoinGame):
     def __init__(self, 
                  driver=None,
                  window_size=(465, 820),
-                 label_animation_time=1.3,
+                 label_animation_time=1.0,
                  game_over_animate_time=3.0,
                  ):
         
