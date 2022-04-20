@@ -4,4 +4,6 @@ strategies/__pycache__/*
 geckodriver.exe
 *geckodriver.log
 *discard.txt
-*bot_runner.py
+*bot_*.py
+.idea/*
+*.pdf
