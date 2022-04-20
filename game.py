@@ -96,6 +96,14 @@ class CoinGame(gym.Env):
         else:
             return self.observe(), {}
 
+    def render(self, mode='human'):
+        if mode == 'human':
+            return ("Heads: {} \n"
+                    "Tails: {} \n"
+                    "Score: {} \t Flips left: {} \n"
+                    "Done: {} \n"
+                    ).format(self.heads, self.tails, self.score, self.flips_left, self.done)
+
     @abstractmethod
     def reset_game(self):
         raise NotImplementedError
