@@ -7,3 +7,4 @@ geckodriver.exe
 *bot_*.py
 .idea/*
 *.pdf
+.vscode/settings.json
