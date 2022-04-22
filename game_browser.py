@@ -10,7 +10,7 @@ https://stackoverflow.com/questions/67614276/perform-and-reset-actions-in-action
 import io
 import time
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageGrab
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -103,16 +103,21 @@ class CoinGameBrowser(CoinGame):
         return driver
 
     def reset_window(self):
+        self.driver.set_window_position(-5, 0, windowHandle='current')
         self.driver.set_window_size(*self.window_size)
         self.driver.execute_script("scroll(0, -250);")
 
-    def get_page_screenshot(self, threshold=None):
+    def get_page_screenshot(self, threshold=None, use="PIL"):
+        self.driver.switch_to.window(self.driver.current_window_handle)
         self.reset_window()
-        screenshot = self.driver.get_screenshot_as_png()
-        screenshot = io.BytesIO(screenshot)
-        screenshot = Image.open(screenshot).convert('L')
+        if use == "PIL":
+            screenshot = ImageGrab.grab(bbox=(1, 105, 565, 1018)).convert('L').resize((1133, 1823))
+        if use == "selenium":
+            screenshot = self.driver.get_screenshot_as_png()
+            screenshot = io.BytesIO(screenshot)
+            screenshot = Image.open(screenshot).convert('L')
         if threshold is not None:
-            screenshot = screenshot.point((lambda p: 0 if p > threshold else 255))
+            screenshot = screenshot.point(lambda p: 0 if p > threshold else 255) # todo: , "1"
         return screenshot
 
     def get_page_crops(self, old=False) -> tuple:
