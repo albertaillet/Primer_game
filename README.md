@@ -11,7 +11,7 @@ This is a repository with environments for simulating and interacting with the g
 ## Strategies:
 
 My strategies can be found in the `strategies` directory.
-The most succestful one was the simple bayesian strategy as we are given the probabilities of the simulation.
+The most succestful one was the simple bayesian strategy.
 
 ## How to use:
 
