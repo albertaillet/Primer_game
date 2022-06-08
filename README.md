@@ -73,5 +73,5 @@ under the name *Coin win notification*.
 The highest score I have achieved was a 10+ hours overnight run with the following score:
 
 <p align="center" title = "My highscore">
-  <img src="highscore.png" />
+  <img src="assets/highscore.png" />
 </p>
