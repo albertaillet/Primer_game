@@ -1,17 +1,17 @@
 ## Primer game:
 
-This is a repository for my strategies to the game [Coin Flip Cheaters: A game from Primer](https://www.youtube.com/watch?v=QC91Bf8hQVo).
+This is a repository with environments for simulating and interacting with the game from [Coin Flip Cheaters: A game from Primer](https://www.youtube.com/watch?v=QC91Bf8hQVo).
 
-[`game.py`](game.py) includes the class `CoinGame` that uses the openai [gym](https://github.com/openai/gym/) base class to set up the environment.
+[`game.py`](game.py) includes the class `CoinGame` that inherits from the openai [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py) base class to set up the environment.
 
-[`game_simulation.py`](game_simulation.py) includes the class `CoinGameSimulation` that builds on `CoinGame` and implements a simulation of the game to test out the your strategies or models.
+[`game_simulation.py`](game_simulation.py) includes the class `CoinGameSimulation` implements a simulation of the game to test out the your strategies or models.
 
-[`game_browser.py`](game_browser.py) includes the class `CoinGameBrowser` that builds on `CoinGame` and iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
+[`game_browser.py`](game_browser.py) includes the class `CoinGameBrowser` iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
 
 ## Strategies:
 
 My strategies can be found in the `strategies` directory.
-The most succestful one was the simple bayesian strategy.
+The most succestful one was the simple bayesian strategy as we are given the probabilities of the simulation.
 
 ## How to use:
 
