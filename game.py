@@ -39,6 +39,8 @@ class CoinGame(gym.Env):
     | 3   | Label the current player as cheater  |
        
     ### Reward:
+    - Flipping one coin: -1 flip
+    - Flipping five coins: -5 flips
     - Correctly labeling the opponent: 15 flips
     - Incorrectly labeling the opponent: -30 flips
 
