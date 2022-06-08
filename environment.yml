@@ -110,5 +110,4 @@ dependencies:
   - pip:
     - daft==0.1.2
     - pygame==2.1.2
-    - pytesseract==0.3.9
 prefix: C:\Users\alber\miniconda3\envs\web-env
