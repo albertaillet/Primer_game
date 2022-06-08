@@ -4,9 +4,9 @@ This is a repository with environments for simulating and interacting with the g
 
 [`game.py`](game.py) includes the class `CoinGame` that inherits from the openai [`gym.Env`](https://github.com/openai/gym/blob/master/gym/core.py) base class to set up the environment.
 
-[`game_simulation.py`](game_simulation.py) includes the class `CoinGameSimulation` implements a simulation of the game to test out the your strategies or models.
+[`game_simulation.py`](game_simulation.py) includes the class `CoinGameSimulation` that implements a simulation of the game to test out the your strategies or models.
 
-[`game_browser.py`](game_browser.py) includes the class `CoinGameBrowser` iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
+[`game_browser.py`](game_browser.py) includes the class `CoinGameBrowser` that iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
 
 ## Strategies:
 
@@ -21,7 +21,7 @@ To get exactly the same dependencies as I used, create the conda environment usi
 conda env create -f environment.yml
 ```
 
-To use the simulation here is an example, the simulation uses the [gym](https://github.com/openai/gym/) API:
+Here is an example of how to use the simulation that uses the [gym](https://github.com/openai/gym/) API:
 
 ```python
 from game_simulation import CoinGameSimulation
