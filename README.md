@@ -1,4 +1,4 @@
-## Primer game:
+# Primer game environments
 
 This is a repository with environments for simulating and interacting with the game from [Coin Flip Cheaters: A game from Primer](https://www.youtube.com/watch?v=QC91Bf8hQVo).
 
@@ -8,12 +8,12 @@ This is a repository with environments for simulating and interacting with the g
 
 [`game_browser.py`](game_browser.py) includes the class `CoinGameBrowser` that iteracts with the online game at [primerlearning.org](https://primerlearning.org/).
 
-## Strategies:
+## Strategies
 
 My strategies can be found in the `strategies` directory.
 The most succestful one was the simple bayesian strategy.
 
-## How to use:
+## How to use
 
 To get exactly the same dependencies as I used, create the conda environment using:
 
@@ -29,16 +29,16 @@ from game_simulation import CoinGameSimulation
 def strategy(n_heads, n_tails, flips_left):
     # define your strategy here
     # see game.py for more details
-    return 
+    return action
 
-g = CoinGameSimulation()
+env = CoinGameSimulation()
 
-(n_heads, n_tails, flips_left) = g.reset()
+(n_heads, n_tails, flips_left) = env.reset()
 
 done = False
 while not done:
     action = strategy(n_heads, n_tails, flips_left)
-    (n_heads, n_tails, flips_left), reward, done, info = g.step(action)
+    (n_heads, n_tails, flips_left), reward, done, info = env.step(action)
 ```	
 
 To use the browser interaction environment you first need to install [FireFox](https://www.mozilla.org/en-US/firefox/new/), [geckodriver](https://github.com/mozilla/geckodriver/releases/).
@@ -52,19 +52,19 @@ from game_browser import CoinGameBrowser
 def strategy(n_heads, n_tails, flips_left):
     # define your strategy here
     # see game.py for more details
-    return 
+    return action
 
-g = CoinGameBrowser()
+env = CoinGameBrowser()
 
-(n_heads, n_tails, flips_left) = g.reset()
+(n_heads, n_tails, flips_left) = env.reset()
 
 done = False
 while not done:
     action = strategy(n_heads, n_tails, flips_left)
-    (n_heads, n_tails, flips_left), reward, done, info = g.step(action)
+    (n_heads, n_tails, flips_left), reward, done, info = env.step(action)
 ```	
 
-## My highscore:
+## My highscore
 
 The highest score I have achieved was a 10+ hours overnight run with the following score:
 
